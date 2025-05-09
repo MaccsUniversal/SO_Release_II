@@ -21,7 +21,11 @@ pageextension 99009 "Sales Order Ext MOO" extends "Sales Order"
     local procedure CreateWhseShipment()
     var
         GetSourceDocOutbound: Codeunit "Get Source Doc. Outbound";
+        SOReleaseSetup: Record "Sales Order Release Setup";
     begin
+        SOReleaseSetup.Get('');
+        if not SOReleaseSetup.EnableRelease then
+            exit;
         GetSourceDocOutbound.CreateFromSalesOrder(Rec);
         if not Rec.Find('=><') then
             Rec.Init();
@@ -30,16 +34,28 @@ pageextension 99009 "Sales Order Ext MOO" extends "Sales Order"
 
 codeunit 99004 UpdateSourceNo
 {
-    [EventSubscriber(ObjectType::Report, Report::"Get Source Documents", OnWarehouseRequestOnAfterOnPostDataItem, '', true, true)]
-    local procedure GetShptHdrOnWarehouseRequestOnAfterOnPostDataItem(WhseShptHeader: Record "Warehouse Shipment Header")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Get Source Doc. Outbound", OnAfterCreateWhseShipmentHeaderFromWhseRequest, '', true, true)]
+    local procedure CreatePickOnAfterCreateWhseShipmentHeaderFromWhseRequest(WhseShptHeader: Record "Warehouse Shipment Header"; var WarehouseRequest: Record "Warehouse Request")
     var
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        SOReleaseSetup: Record "Sales Order Release Setup";
     begin
-        WarehouseShipmentLine.Reset();
-        WhseShptHeader.Reset();
-        WarehouseShipmentLine.SetFilter("No.", WhseShptHeader."No.");
-        WhseShptHeader.SetFilter("No.", WhseShptHeader."No.");
-        CreatePickLines(WarehouseShipmentLine, WhseShptHeader);
+        SOReleaseSetup.Get('');
+        if not SOReleaseSetup.EnablePicks then
+            exit;
+        if (WarehouseRequest.Type = WarehouseRequest.Type::Outbound) and
+        (WarehouseRequest."Source Document" = WarehouseRequest."Source Document"::"Sales Order") and
+        (WarehouseRequest."Source Subtype" = WarehouseRequest."Source Subtype"::"1") and
+        (WarehouseRequest."Source Type" = 37)
+        then begin
+            WarehouseShipmentLine.Reset();
+            WhseShptHeader.Reset();
+            WarehouseShipmentLine.SetFilter("No.", WhseShptHeader."No.");
+            WhseShptHeader.SetFilter("No.", WhseShptHeader."No.");
+            CreatePickLines(WarehouseShipmentLine, WhseShptHeader);
+            //Release warehouse shipment doc.
+            ReleaseWhseShiptDoc(WhseShptHeader);
+        end;
     end;
 
     // Creates Pick Lines from Warehouse Shipment Lines using the "Whse.-Shipment - Create Pick" report. 
@@ -53,8 +69,6 @@ codeunit 99004 UpdateSourceNo
         //Excute Create Pick Report.
         ReportParameters := '<?xml version="1.0" standalone="yes"?><ReportParameters name="Whse.-Shipment - Create Pick" id="7318"><Options><Field name="AssignedIDReq" /><Field name="SortActivity">6</Field><Field name="BreakbulkFilterReq">false</Field><Field name="DoNotFillQtytoHandleReq">false</Field><Field name="ApplyCustomSorting">false</Field><Field name="PrintDocReq">false</Field><Field name="ShowSummary">false</Field></Options><DataItems><DataItem name="Warehouse Shipment Line">VERSION(1) SORTING(Field1,Field2)</DataItem><DataItem name="Assembly Header">VERSION(1) SORTING(Field1,Field2)</DataItem><DataItem name="Assembly Line">VERSION(1) SORTING(Field1,Field2,Field3)</DataItem></DataItems></ReportParameters>';
         WhseCreatePickRep.Execute(ReportParameters);
-        //Release warehouse shipment doc.
-        ReleaseWhseShiptDoc(WhseShptHeader);
     end;
 
     //Releases Warehosue Shipment Document After Creating Picks As Per Customers Request.
