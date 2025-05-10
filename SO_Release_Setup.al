@@ -10,12 +10,12 @@ table 99100 "Sales Order Release Setup"
             InitValue = '';
         }
 
-        field(99101; EnableRelease; Boolean)
+        field(99101; EnableCreateWhseDoc; Boolean)
         {
             DataClassification = ToBeClassified;
         }
 
-        field(99102; EnablePicks; Boolean)
+        field(99102; EnableCreatePicks; Boolean)
         {
             DataClassification = ToBeClassified;
         }
@@ -54,17 +54,17 @@ page 99100 "Sales Order Release Setup"
         {
             group(Options)
             {
-                field("Enable Release"; Rec.EnableRelease)
+                field("Enable Warehouse Shipment Document"; Rec.EnableCreateWhseDoc)
                 {
                     ApplicationArea = All;
                     Tooltip = 'Creates Warehouse Shipment Document when a Sales Order is Released';
                 }
 
-                field("Enable Create Pick"; Rec.EnablePicks)
+                field("Enable Create Pick"; Rec.EnableCreatePicks)
                 {
                     ApplicationArea = All;
                     Tooltip = 'Create a Warehouse Pick when a Warehouse Shipment Document is created. This option is available when "Enable Release" is switched on';
-                    Enabled = Rec.EnableRelease;
+                    Enabled = Rec.EnableCreateWhseDoc;
                 }
 
             }
@@ -73,8 +73,8 @@ page 99100 "Sales Order Release Setup"
 
     trigger OnModifyRecord(): Boolean
     begin
-        if not Rec.EnableRelease then
-            Rec.EnablePicks := false;
+        if not Rec.EnableCreateWhseDoc then
+            Rec.EnableCreatePicks := false;
     end;
 
 }
@@ -92,8 +92,8 @@ codeunit 99100 InitializeSOReleaseSetup
             exit;
         SORTable.Init();
         SORTable.PK := '';
-        SORTable.EnableRelease := false;
-        SORTable.EnablePicks := false;
+        SORTable.EnableCreateWhseDoc := false;
+        SORTable.EnableCreatePicks := false;
         SORTable.Insert();
     end;
 }
