@@ -40,15 +40,16 @@ codeunit 99004 UpdateSourceNo
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
         SOReleaseSetup: Record "Sales Order Release Setup";
     begin
-        SOReleaseSetup.Get('');
-        if not SOReleaseSetup.EnableCreatePicks then
-            ReleaseWhseShiptDoc(WhseShptHeader);
-        exit;
         if (WarehouseRequest.Type = WarehouseRequest.Type::Outbound) and
         (WarehouseRequest."Source Document" = WarehouseRequest."Source Document"::"Sales Order") and
         (WarehouseRequest."Source Subtype" = WarehouseRequest."Source Subtype"::"1") and
         (WarehouseRequest."Source Type" = 37)
         then begin
+            SOReleaseSetup.Get('');
+            if not SOReleaseSetup.EnableCreatePicks then begin
+                ReleaseWhseShiptDoc(WhseShptHeader);
+                exit;
+            end;
             WarehouseShipmentLine.Reset();
             WhseShptHeader.Reset();
             WarehouseShipmentLine.SetFilter("No.", WhseShptHeader."No.");
