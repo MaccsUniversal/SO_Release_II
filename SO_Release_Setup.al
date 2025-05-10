@@ -91,9 +91,6 @@ codeunit 99100 InitializeSOReleaseSetup
         if SORTable.Get('') then
             exit;
         SORTable.Init();
-        SORTable.PK := '';
-        SORTable.EnableCreateWhseDoc := false;
-        SORTable.EnableCreatePicks := false;
         SORTable.Insert();
     end;
 }
