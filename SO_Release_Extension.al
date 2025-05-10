@@ -24,7 +24,7 @@ pageextension 99009 "Sales Order Ext MOO" extends "Sales Order"
         SOReleaseSetup: Record "Sales Order Release Setup";
     begin
         SOReleaseSetup.Get('');
-        if not SOReleaseSetup.EnableRelease then
+        if not SOReleaseSetup.EnableCreateWhseDoc then
             exit;
         GetSourceDocOutbound.CreateFromSalesOrder(Rec);
         if not Rec.Find('=><') then
@@ -41,8 +41,9 @@ codeunit 99004 UpdateSourceNo
         SOReleaseSetup: Record "Sales Order Release Setup";
     begin
         SOReleaseSetup.Get('');
-        if not SOReleaseSetup.EnablePicks then
-            exit;
+        if not SOReleaseSetup.EnableCreatePicks then
+            ReleaseWhseShiptDoc(WhseShptHeader);
+        exit;
         if (WarehouseRequest.Type = WarehouseRequest.Type::Outbound) and
         (WarehouseRequest."Source Document" = WarehouseRequest."Source Document"::"Sales Order") and
         (WarehouseRequest."Source Subtype" = WarehouseRequest."Source Subtype"::"1") and
