@@ -32,7 +32,7 @@ pageextension 99009 "Sales Order Ext MOO" extends "Sales Order"
     end;
 }
 
-codeunit 99004 UpdateSourceNo
+codeunit 99005 CreatePickOnSalesOrderRelease
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Get Source Doc. Outbound", OnAfterCreateWhseShipmentHeaderFromWhseRequest, '', true, true)]
     local procedure CreatePickOnAfterCreateWhseShipmentHeaderFromWhseRequest(WhseShptHeader: Record "Warehouse Shipment Header"; var WarehouseRequest: Record "Warehouse Request")
