@@ -47,6 +47,7 @@ page 99100 "Sales Order Release Setup"
     SourceTable = "Sales Order Release Setup";
     InsertAllowed = false;
     DeleteAllowed = false;
+    Permissions = tabledata "Sales Order Release Setup" = RM;
 
     layout
     {
