@@ -1,21 +1,21 @@
-table 99100 "Sales Order Release Setup"
+table 99008 "Sales Order Release Setup"
 {
     DataClassification = ToBeClassified;
     Caption = 'Sales Order Release Setup';
     fields
     {
-        field(99100; PK; Code[10])
+        field(99017; PK; Code[10])
         {
             DataClassification = ToBeClassified;
             InitValue = '';
         }
 
-        field(99101; EnableCreateWhseDoc; Boolean)
+        field(99018; EnableCreateWhseDoc; Boolean)
         {
             DataClassification = ToBeClassified;
         }
 
-        field(99102; EnableCreatePicks; Boolean)
+        field(99019; EnableCreatePicks; Boolean)
         {
             DataClassification = ToBeClassified;
         }
@@ -38,7 +38,7 @@ table 99100 "Sales Order Release Setup"
 
 }
 
-page 99100 "Sales Order Release Setup"
+page 99010 "Sales Order Release Setup"
 {
 
     PageType = Card;
@@ -80,7 +80,7 @@ page 99100 "Sales Order Release Setup"
 
 }
 
-codeunit 99100 InitializeSOReleaseSetup
+codeunit 99006 InitializeSOReleaseSetup
 {
 
     [EventSubscriber(ObjectType::Page, Page::"Sales Order Release Setup", OnOpenPageEvent, '', true, true)]
@@ -95,3 +95,4 @@ codeunit 99100 InitializeSOReleaseSetup
         SORTable.Insert();
     end;
 }
+
