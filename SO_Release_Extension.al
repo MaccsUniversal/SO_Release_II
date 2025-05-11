@@ -23,12 +23,14 @@ pageextension 99009 "Sales Order Ext MOO" extends "Sales Order"
         GetSourceDocOutbound: Codeunit "Get Source Doc. Outbound";
         SOReleaseSetup: Record "Sales Order Release Setup";
     begin
-        SOReleaseSetup.Get('');
-        if not SOReleaseSetup.EnableCreateWhseDoc then
+        if SOReleaseSetup.Get('') then begin
+            if not SOReleaseSetup.EnableCreateWhseDoc then
+                exit;
+            GetSourceDocOutbound.CreateFromSalesOrder(Rec);
+            if not Rec.Find('=><') then
+                Rec.Init();
+        end else
             exit;
-        GetSourceDocOutbound.CreateFromSalesOrder(Rec);
-        if not Rec.Find('=><') then
-            Rec.Init();
     end;
 }
 
@@ -45,18 +47,21 @@ codeunit 99005 CreatePickOnSalesOrderRelease
         (WarehouseRequest."Source Subtype" = WarehouseRequest."Source Subtype"::"1") and
         (WarehouseRequest."Source Type" = 37)
         then begin
-            SOReleaseSetup.Get('');
-            if not SOReleaseSetup.EnableCreatePicks then begin
+            if SOReleaseSetup.Get('') then begin
+                if not SOReleaseSetup.EnableCreatePicks then begin
+                    ReleaseWhseShiptDoc(WhseShptHeader);
+                    exit;
+                end;
+                WarehouseShipmentLine.Reset();
+                WhseShptHeader.Reset();
+                WarehouseShipmentLine.SetFilter("No.", WhseShptHeader."No.");
+                WhseShptHeader.SetFilter("No.", WhseShptHeader."No.");
+                CreatePickLines(WarehouseShipmentLine, WhseShptHeader);
+                //Release warehouse shipment doc.
                 ReleaseWhseShiptDoc(WhseShptHeader);
-                exit;
-            end;
-            WarehouseShipmentLine.Reset();
-            WhseShptHeader.Reset();
-            WarehouseShipmentLine.SetFilter("No.", WhseShptHeader."No.");
-            WhseShptHeader.SetFilter("No.", WhseShptHeader."No.");
-            CreatePickLines(WarehouseShipmentLine, WhseShptHeader);
-            //Release warehouse shipment doc.
-            ReleaseWhseShiptDoc(WhseShptHeader);
+            end else
+                ReleaseWhseShiptDoc(WhseShptHeader);
+            exit;
         end;
     end;
 
