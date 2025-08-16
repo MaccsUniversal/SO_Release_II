@@ -22,10 +22,14 @@ pageextension 99009 "Sales Order Ext MOO" extends "Sales Order"
     var
         GetSourceDocOutbound: Codeunit "Get Source Doc. Outbound";
         SOReleaseSetup: Record "Sales Order Release Setup";
+        CreatePickOnRelease: Codeunit CreatePickOnSalesOrderRelease;
     begin
         if SOReleaseSetup.Get('') then begin
             if not SOReleaseSetup.EnableCreateWhseDoc then
                 exit;
+            BindSubscription(CreatePickOnRelease);
+            CreatePickOnRelease.SetFromRelease(SOReleaseSetup.EnableCreateWhseDoc);
+            UnbindSubscription(CreatePickOnRelease);
             GetSourceDocOutbound.CreateFromSalesOrder(Rec);
             if not Rec.Find('=><') then
                 Rec.Init();
@@ -36,12 +40,21 @@ pageextension 99009 "Sales Order Ext MOO" extends "Sales Order"
 
 codeunit 99005 CreatePickOnSalesOrderRelease
 {
+    EventSubscriberInstance = Manual;
+    procedure SetFromRelease(var FromSalesOrderRelease: Boolean)
+    begin
+        FromRelease := FromSalesOrderRelease;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Get Source Doc. Outbound", OnAfterCreateWhseShipmentHeaderFromWhseRequest, '', true, true)]
     local procedure CreatePickOnAfterCreateWhseShipmentHeaderFromWhseRequest(WhseShptHeader: Record "Warehouse Shipment Header"; var WarehouseRequest: Record "Warehouse Request")
     var
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
         SOReleaseSetup: Record "Sales Order Release Setup";
     begin
+        if not FromRelease then
+            exit;
+
         if (WarehouseRequest.Type = WarehouseRequest.Type::Outbound) and
         (WarehouseRequest."Source Document" = WarehouseRequest."Source Document"::"Sales Order") and
         (WarehouseRequest."Source Subtype" = WarehouseRequest."Source Subtype"::"1") and
@@ -63,6 +76,8 @@ codeunit 99005 CreatePickOnSalesOrderRelease
                 ReleaseWhseShiptDoc(WhseShptHeader);
             exit;
         end;
+
+        FromRelease := false;
     end;
 
     // Creates Pick Lines from Warehouse Shipment Lines using the "Whse.-Shipment - Create Pick" report. 
@@ -88,4 +103,7 @@ codeunit 99005 CreatePickOnSalesOrderRelease
         if WhseShipmentHeader.Status = WhseShipmentHeader.Status::Open then
             ReleaseWhseShptDoc.Release(WhseShipmentHeader);
     end;
+
+    var
+        FromRelease: Boolean;
 }
